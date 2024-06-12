@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>TankGame</title>
+		<style>
+			#div0{
+				width: 1600px;
+				height: 800px;
+				background-color: darkgrey;
+				position:absolute;
+				left: 100px;
+				top: 100px;
+				background-image: url(img/tezhongbing.png);
+			}
+			#div1{
+				width: 40px;
+				height: 40px;
+				background-color: burlywood;
+				position:absolute;
+				left: 0px;
+				top: 0px;
+			}
+			#div2{
+				width: 40px;
+				height: 40px;
+				background-color: burlywood;
+				position:absolute;
+				left: 1550px;
+				top: 750px;
+			}
+			#img1{
+				width: 40px;
+				height: 40px;
+			}
+			#img2{
+				width: 40px;
+				height: 40px;
+			}
+			p{
+				text-shadow: 10px 10px 10px red;
+			}
+		</style>
+	</head>
+	<body style="background-image: url(img/tankBackgrounp.png);">
+		<div>
+			<div style="left: 100px;top: 25px;position: absolute;"><img src="img/game1.png" alt="" style="width: 500px;height: 50px;"/></div>
+			<div style="left: 650px;top: 0px;position: absolute;"><p><font size="20px" color="yellow"><i>欢迎来到朱远文的网站</i></font></p></div>
+			<div style="left: 1200px;top: 25px;position: absolute;"><img src="img/game2.png" alt="" style="width: 500px;height: 50px;"/></div>
+		</div>
+		<div id="div0">
+			<div id="div1"><img id="img1" src="img/tank1_right.png" alt="" /></div>
+			<div id="div2"><img id="img2" src="img/tank2_left.png" alt="" /></div>
+		</div>
+		<audio id="myAudio">
+			<source id="mySource" src="audio/arm.mp3"/>
+		</audio>
+		<audio id="shootHit">
+			<source id="HitSource" src="audio/shootHIt.mp3"/>
+		</audio>
+		<audio id="shootAudio">
+			<source id="shootSource" src="audio/shootAudio.mp3"/>
+		</audio>
+		
+		<script>
+			window.onload = function(){
+				function tank(x,y,z,life,pre){
+					this.tank_x = x;
+					this.tank_y = y;
+					this.bullet = z;
+					this.tankLife = life;
+					this.tankPre = pre;
+				}
+				let Width = 1600
+				let Height = 800
+				let tankWidth = 40
+				let t1=document.getElementById("div1");
+				let t1Img = document.getElementById("img1");
+				let t2=document.getElementById("div2");
+				let t2Img = document.getElementById("img2")
+				let tank1 = new tank(0,0,3,1,null)
+				t1.style.left = 0+"px";
+				t1.style.top = 0+"px";
+				let tank2 = new tank(1550,750,3,1,null)
+				t2.style.left = 1550+"px";
+				t2.style.top = 750+"px";
+				
+				//背景音乐
+				let myAudio = document.getElementById("myAudio");
+				let mySource = document.getElementById("mySource");
+				myAudio.loop=true;
+				let flagAudioStart = false;
+				myAudio.volume = 0.5
+				//发射炮弹声音
+				let shootAudio = document.getElementById("shootAudio");
+				let shootSource = document.getElementById("shootSource");
+				shootAudio.volume=0.2;
+				//炮弹击中声音
+				let shootHit = document.getElementById("shootHit");
+				let hitSource = document.getElementById("HitSource");
+				shootHit.volume=0.3;
+				
+				let step = 5 //步长
+				let stepBullet = 10 //炮弹速度
+				let widthBullet = 20; //炮弹宽度
+				let listBulletPosition = []; //炮弹坐标
+				let bullets = [] //炮弹element
+				
+				let listWallPosition=[] //墙体方块坐标
+				let wallWidth = 50;
+				setWall = function(){
+					for(let i=0;i<listWallPosition.length;i++){
+						let createDiv = document.createElement("div");
+						document.getElementById("div0").appendChild(createDiv);
+						createDiv.style.position="absolute";
+						createDiv.style.left=listWallPosition[i][0]+"px";
+						createDiv.style.top=listWallPosition[i][1]+"px";
+						createDiv.style.width="50px";
+						createDiv.style.height="50px";
+						createDiv.style.backgroundImage="url(img/wall.png)";
+					}
+				}
+				add = function(x,y){
+					listWallPosition.push([x*50,y*50]);
+				}
+				addAllWall=function(){
+					add(1,2);
+					add(1,3);
+					add(1,6);
+					add(1,7);
+					add(1,10);
+					add(1,13);
+					add(2,10);
+					add(2,13);
+					add(3,1);
+					add(3,4);
+					add(3,5);
+					add(3,14);
+					add(4,8);
+					add(5,3);
+					add(5,9);
+					add(5,12);
+					add(5,14);
+					add(6,2);
+					add(6,3);
+					add(6,4);
+					add(7,3);
+					add(8,6);
+					add(8,7);
+					add(8,10);
+					add(8,13);
+					add(9,11);
+					add(9,12);
+					add(10,2);
+					add(10,3);
+					add(10,10);
+					add(10,13);
+					add(12,13);
+					add(13,3);
+					add(13,10);
+					add(13,13);
+					add(14,4);
+					add(14,11);
+					add(14,13);
+					add(15,13);
+					add(16,3);
+					add(17,2);
+					add(17,13);
+					add(18,1);
+					add(18,4);
+					add(18,11);
+					add(18,13);
+					add(19,10);
+					add(19,13);
+					add(20,13);
+					add(21,5);
+					add(22,4);
+					add(22,8);
+					add(22,9);
+					add(22,12);
+					add(22,13);
+					add(23,2);
+					add(23,3);
+					add(24,6);
+					add(25,2);
+					add(25,7);
+					add(25,12);
+					add(26,2);
+					add(26,13);
+					add(27,3);
+					add(27,4);
+					add(27,8);
+					add(27,9);
+					add(29,2);
+					add(29,6);
+					add(29,7);
+					add(29,11);
+					add(29,14);
+					add(29,15);
+					add(30,2);
+					add(30,3);
+					add(30,11);
+				}
+				addAllWall();
+				setWall();
+				
+				setBullet = function(tank){
+					let bulletX = null
+					let bulletY = null
+					let pre = null
+					if(tank.bullet>0&&tank.tankPre!=null){
+						if(shootAudio.currentTime!=shootAudio.duration){
+							shootAudio.currentTime=0
+						}
+						shootAudio.play();
+						switch(tank.tankPre){
+							case 'w':bulletX=tank1.tank_x+tankWidth/2-widthBullet/2;bulletY=tank1.tank_y-widthBullet;pre='up';break;
+							case 's':bulletX=tank1.tank_x+tankWidth/2-widthBullet/2;bulletY=tank1.tank_y+tankWidth;pre='down';break;
+							case 'a':bulletX=tank1.tank_x-widthBullet;bulletY=tank1.tank_y+tankWidth/2-widthBullet/2;pre='left';break;
+							case 'd':bulletX=tank1.tank_x+tankWidth;bulletY=tank1.tank_y+tankWidth/2-widthBullet/2;pre='right';break;
+							case '5':bulletX=tank2.tank_x+tankWidth/2-widthBullet/2;bulletY=tank2.tank_y-widthBullet;pre='up';break;
+							case '2':bulletX=tank2.tank_x+tankWidth/2-widthBullet/2;bulletY=tank2.tank_y+tankWidth;pre='down';break;
+							case '1':bulletX=tank2.tank_x-widthBullet;bulletY=tank2.tank_y+tankWidth/2-widthBullet/2;pre='left';break;
+							case '3':bulletX=tank2.tank_x+tankWidth;bulletY=tank2.tank_y+tankWidth/2-widthBullet/2;pre='right';break;
+						}
+						tank.bullet-=1;
+					}
+					if(pre!=null){
+						listBulletPosition.push([bulletX,bulletY,pre,tank]);
+						let bullet = document.createElement("div");
+						document.getElementById("div0").appendChild(bullet);
+						bullet.style.position = "absolute";
+						bullet.style.width = widthBullet+"px";
+						bullet.style.height = widthBullet+"px";
+						bullet.style.top = bulletY+"px";
+						bullet.style.left = bulletX+"px";
+						bullet.style.backgroundImage="url(img/paodan.png)";
+						bullets.push(bullet);
+					}
+				}
+				shootBulletJudge = function(pos){
+					let flag = true;
+					/*炮弹出墙外*/
+					if(pos[0]<0||pos[0]+widthBullet>Width||pos[1]<0||pos[1]+widthBullet>Height){
+						flag = false;
+					}
+					/*炮弹打墙上*/
+					for(let i=0;i<listWallPosition.length;i++){
+						if(pos[0]+widthBullet>=listWallPosition[i][0]&&pos[0]<=listWallPosition[i][0]+wallWidth&&pos[1]+widthBullet>=listWallPosition[i][1]&&pos[1]<=listWallPosition[i][1]+wallWidth){
+							flag = false;
+							break;
+						}
+					}
+					/*炮弹击中坦克*/
+					if(pos[0]+widthBullet>=tank1.tank_x&&pos[0]<=tank1.tank_x+tankWidth&&pos[1]+widthBullet>=tank1.tank_y&&pos[1]<=tank1.tank_y+tankWidth){
+						if(tank1.tankLife>0){
+							flag = false;
+							tank1.tankLife-=1;
+						}
+					}
+					if(pos[0]+widthBullet>=tank2.tank_x&&pos[0]<=tank2.tank_x+tankWidth&&pos[1]+widthBullet>=tank2.tank_y&&pos[1]<=tank2.tank_y+tankWidth){
+						if(tank2.tankLife>0){
+							flag = false;
+							tank2.tankLife-=1;
+						}
+					}
+					if(!flag){
+						if(shootHit.currentTime!=shootHit.duration){
+							shootHit.currentTime=0;
+						}
+						shootHit.play();
+					}
+					return flag;
+				}
+				shootBullet = function(){
+					let removeIndex = [];
+					/*炮弹不同方向的坐标计算*/
+					for(let i=0;i<listBulletPosition.length;i++){
+						switch(listBulletPosition[i][2]){
+							case 'up':listBulletPosition[i][1]-=stepBullet;break;
+							case 'down':listBulletPosition[i][1]+=stepBullet;break;
+							case 'left':listBulletPosition[i][0]-=stepBullet;break;
+							case 'right':listBulletPosition[i][0]+=stepBullet;break;
+						}
+						if(!shootBulletJudge(listBulletPosition[i])){						
+							removeIndex.push(i);
+							listBulletPosition[i][3].bullet+=1;
+						}
+					}
+					/*对记录的炮弹坐标进行删除*/
+					if(removeIndex!=[]){
+						for(let i=0;i<removeIndex.length;i++){
+							listBulletPosition.splice(removeIndex[i],1);
+							document.getElementById("div0").removeChild(bullets[removeIndex[i]])
+							bullets.splice(removeIndex[i],1);
+						}
+					}
+					for(let i=0;i<bullets.length;i++){
+						bullets[i].style.top=listBulletPosition[i][1]+"px";
+						bullets[i].style.left=listBulletPosition[i][0]+"px";
+					}
+				}
+
+				onkeydown = function(e){
+					try{
+						if(e.key!="Control"&&!flagAudioStart){
+							flagAudioStart=true;
+							myAudio.play();
+						}
+					}catch(error){
+						flagAudioStart=false;
+					}
+					
+					if(e.key=='w'||e.key=='a'||e.key=='d'||e.key=='s'){
+						tank1.tankPre=e.key
+						
+					}
+					if(e.key=='5'||e.key=='1'||e.key=='3'||e.key=='2'){
+						tank2.tankPre = e.key
+					}
+					if(e.key=='g'){
+						setBullet(tank1);
+					}
+					if(e.key=='+'){
+						setBullet(tank2);
+					}
+				}
+				let time = window.setInterval(()=>MoveEvent(),50)
+				gameOverJudge=function(tank){
+					if(tank.tankLife<=0){
+						window.clearInterval(time);
+						if(tank==tank1){
+							t1Img.src="img/baozha.png"
+						}else{
+							t2Img.src="img/baozha.png"
+						}
+						let overImg = document.createElement("img");
+						document.getElementById("div0").appendChild(overImg);
+						overImg.style.position="absolute";
+						overImg.style.width = "400px"
+						overImg.style.height= "200px"
+						overImg.style.top = "300px"
+						overImg.style.left = "600px"
+						overImg.src="img/gameover.jpg"
+					}
+				}
+				MoveEvent = function(){
+					switch(tank1.tankPre){
+						case 'w':TankMoveUp(tank1);break;
+						case 'a':TankMoveLeft(tank1);break;
+						case 'd':TankMoveRight(tank1);break;
+						case 's':TankMoveDown(tank1);break;
+						
+					}
+					switch(tank2.tankPre){
+						case '5':TankMoveUp(tank2);break;
+						case '1':TankMoveLeft(tank2);break;
+						case '3':TankMoveRight(tank2);break;
+						case '2':TankMoveDown(tank2);break;
+					}
+					shootBullet();
+					gameOverJudge(tank1);
+					gameOverJudge(tank2);
+				}
+				TankMoveUp = function(tank){
+					tank.tank_y-=step;
+					if(tank==tank1){
+						t1Img.src="img/tank1_up.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_y+=step;
+						}else{
+							t1.style.top=tank.tank_y+"px";
+						}
+					}else{
+						t2Img.src="img/tank2_up.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_y+=step;
+						}else{
+							t2.style.top=tank.tank_y+"px";
+						}
+					}	
+				}
+				TankMoveDown = function(tank){
+					tank.tank_y+=step;
+					if(tank==tank1){
+						t1Img.src="img/tank1_down.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_y-=step;
+						}else{
+							t1.style.top=tank.tank_y+"px";
+						}
+					}else{
+						t2Img.src="img/tank2_down.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_y-=step;
+						}else{
+							t2.style.top=tank.tank_y+"px";
+						}
+					}
+				}
+				TankMoveLeft = function(tank){
+					tank.tank_x-=step;
+					if(tank==tank1){
+						t1Img.src="img/tank1_left.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_x+=step;
+						}else{
+							t1.style.left=tank.tank_x+"px";
+						}
+					}else{
+						t2Img.src="img/tank2_left.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_x+=step;
+						}else{
+							t2.style.left=tank.tank_x+"px";
+						}
+					}
+				}
+				TankMoveRight = function(tank){
+					tank.tank_x+=step;
+					if(tank==tank1){
+						t1Img.src="img/tank1_right.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_x-=step;
+						}else{
+							t1.style.left=tank.tank_x+"px";
+						}
+					}else{
+						t2Img.src="img/tank2_right.png"
+						if(!TankMoveJudge(tank)){
+							tank.tank_x-=step;
+						}else{
+							t2.style.left=tank.tank_x+"px";
+						}
+					}
+				}
+				TankMoveJudge = function(tank){
+					let flag = true;
+					if(tank.tank_x<0||tank.tank_x+tankWidth>Width||tank.tank_y<0||tank.tank_y+tankWidth>Height){
+						flag = false;
+					}
+					for(let i=0;i<listWallPosition.length;i++){
+						if(tank.tank_x+tankWidth>=listWallPosition[i][0]&&tank.tank_x<=listWallPosition[i][0]+wallWidth&&tank.tank_y+tankWidth>=listWallPosition[i][1]&&tank.tank_y<=listWallPosition[i][1]+wallWidth){
+							flag = false;
+							break;
+						}
+					}
+					return flag;
+				}	
+			}
+			
+		</script>
+	</body>
+</html>
